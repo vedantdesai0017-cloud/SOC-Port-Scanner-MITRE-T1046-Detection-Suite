@@ -1,0 +1,64 @@
+[
+  {
+    "alert_id": "f09c4ab0-01f1-4084-9648-fd2d584731f5",
+    "alert_timestamp": "2026-10-28T16:02:31.027041+00:00",
+    "event_timestamp": "2026-10-28T15:55:45.579071+00:00",
+    "source_ip": "192.168.1.185",
+    "target_ip": "192.168.1.10",
+    "distinct_ports_count": 11,
+    "ports_hit": [
+      21,
+      22,
+      23,
+      25,
+      53,
+      80,
+      110,
+      111,
+      135,
+      139,
+      143
+    ],
+    "window_seconds": 60.0,
+    "threshold": 10,
+    "mitre_attack": {
+      "tactic": "Discovery (TA0007)",
+      "technique_id": "T1046",
+      "technique_name": "Network Service Discovery",
+      "reference": "https://attack.mitre.org/techniques/T1046/",
+      "severity": "MEDIUM",
+      "description": "Source IP 192.168.1.185 probed 11 distinct ports on 192.168.1.10 within 60.0s (Threshold > 10)."
+    }
+  },
+  {
+    "alert_id": "0b493eee-c3da-491c-9e4e-f5a9d39c83c5",
+    "alert_timestamp": "2026-10-28T16:02:31.027897+00:00",
+    "event_timestamp": "2026-10-28T15:59:12.579071+00:00",
+    "source_ip": "203.0.113.77",
+    "target_ip": "192.168.1.10",
+    "distinct_ports_count": 11,
+    "ports_hit": [
+      21,
+      22,
+      80,
+      443,
+      445,
+      3389,
+      8000,
+      8080,
+      8443,
+      8888,
+      9000
+    ],
+    "window_seconds": 60.0,
+    "threshold": 10,
+    "mitre_attack": {
+      "tactic": "Discovery (TA0007)",
+      "technique_id": "T1046",
+      "technique_name": "Network Service Discovery",
+      "reference": "https://attack.mitre.org/techniques/T1046/",
+      "severity": "MEDIUM",
+      "description": "Source IP 203.0.113.77 probed 11 distinct ports on 192.168.1.10 within 60.0s (Threshold > 10)."
+    }
+  }
+]

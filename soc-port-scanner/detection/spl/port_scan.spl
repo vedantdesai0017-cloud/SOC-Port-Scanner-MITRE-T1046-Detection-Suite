@@ -1,0 +1,51 @@
+-- ==============================================================================
+-- Splunk Correlation Search (SPL): High-Velocity Port Scan Detection
+-- ==============================================================================
+-- Target MITRE ATT&CK: T1046 (Network Service Discovery)
+-- Tactic             : TA0007 (Discovery)
+-- Data Model / CIM   : Network_Traffic (All_Traffic)
+-- Recommended Schedule: Run every 5 minutes with a 1-minute earliest/latest buffer
+-- ==============================================================================
+
+-- Option A: Optimized Acceleration using CIM Data Model (Enterprise Security / High Volume)
+| tstats `summariesonly`
+    dc(All_Traffic.dest_port) as distinct_ports
+    count as total_probes
+    values(All_Traffic.dest_port) as sample_ports
+    from datamodel=Network_Traffic.All_Traffic
+    where All_Traffic.transport="tcp"
+    by _time span=1m All_Traffic.src All_Traffic.dest
+| rename All_Traffic.src as src_ip, All_Traffic.dest as dest_ip
+| where distinct_ports > 15
+| eval mitre_technique_id="T1046"
+| eval mitre_technique_name="Network Service Discovery"
+| eval mitre_tactic="Discovery (TA0007)"
+| eval severity=case(
+    distinct_ports > 100, "critical",
+    distinct_ports > 50, "high",
+    distinct_ports > 15, "medium",
+    true(), "low"
+)
+| eval description="Host " . src_ip . " probed " . distinct_ports . " distinct ports on target " . dest_ip . " within 60s."
+| table _time, src_ip, dest_ip, distinct_ports, total_probes, severity, mitre_technique_id, mitre_technique_name, sample_ports, description
+
+-- ==============================================================================
+-- Option B: Raw Firewall Index Search (Standard Splunk Core / Non-Accelerated)
+-- ==============================================================================
+-- Use this query when CIM data acceleration is not enabled:
+--
+-- index=firewall OR index=netflow OR sourcetype="pan:traffic" OR sourcetype="cisco:asa"
+-- | where transport="tcp" OR protocol="tcp"
+-- | bin _time span=1m
+-- | stats
+--     dc(dest_port) as distinct_ports
+--     count as total_packets
+--     values(dest_port) as scanned_ports
+--     earliest(_time) as first_seen
+--     latest(_time) as last_seen
+--     by src_ip, dest_ip, _time
+-- | where distinct_ports > 15
+-- | eval duration_sec = round(last_seen - first_seen, 2)
+-- | eval mitre_technique="T1046 - Network Service Discovery"
+-- | eval scan_velocity = round(total_packets / 60, 2)
+-- | sort - distinct_ports

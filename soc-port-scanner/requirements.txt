@@ -1,0 +1,16 @@
+# Core dependencies for SOC Port Scanner & Detection Suite
+# Note: The scanner core, CLI, and log detector use Python standard library only.
+# The dependencies below are for testing, the dashboard, and optional advanced features.
+
+# Testing
+pytest>=7.4.0
+
+# Optional: SYN scan module and PCAP parsing
+scapy>=2.5.0
+
+# Dashboard
+streamlit>=1.30.0
+pydeck>=0.8.0
+pandas>=2.0.0
+
+# GeoIP and CVE lookup use only stdlib urllib.request — no extra packages needed.

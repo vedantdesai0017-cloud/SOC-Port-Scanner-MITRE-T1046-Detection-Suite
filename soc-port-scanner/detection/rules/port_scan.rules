@@ -1,0 +1,52 @@
+# ==============================================================================
+# Suricata NIDS Detection Rules: Network Service Discovery (MITRE ATT&CK T1046)
+# ==============================================================================
+# Rule Author : SOC Detection Engineering Team
+# Target      : Vertical & Horizontal Port Scanning Activity
+# ATT&CK Ref  : https://attack.mitre.org/techniques/T1046/
+#
+# Technical Overview:
+# Adversaries routinely probe external or internal IP addresses to discover active
+# network services and identify unpatched, exploitable daemons.
+# These rules leverage Suricata's stateful inspection and thresholding mechanisms
+# to detect anomalous bursts of TCP connection attempts from a single source.
+# ==============================================================================
+
+# Rule 1: Vertical TCP SYN (Half-Open) Port Scan
+# Triggers when a single external source IP sends more than 15 TCP SYN packets
+# (without ACK) to distinct ports/hosts within a 60-second window.
+alert tcp $EXTERNAL_NET any -> $HOME_NET any ( \
+    msg:"SOC DETECT - Potential Network Service Discovery (T1046) - TCP SYN Port Scan"; \
+    flags:S,12; \
+    threshold: type both, track by_src, count 15, seconds 60; \
+    classtype:attempted-recon; \
+    metadata:mitre_tactic_id TA0007, mitre_tactic_name Discovery, mitre_technique_id T1046, mitre_technique_name "Network Service Discovery"; \
+    reference:url,attack.mitre.org/techniques/T1046; \
+    sid:2001046; \
+    rev:1; \
+)
+
+# Rule 2: TCP Full Connect Port Scan (Established Connections)
+# Triggers when an external source rapidly establishes more than 20 distinct TCP
+# connections within 60 seconds, indicating a multithreaded TCP Connect scan.
+alert tcp $EXTERNAL_NET any -> $HOME_NET any ( \
+    msg:"SOC DETECT - Established TCP Connect Port Scan (T1046)"; \
+    flow:to_server,established; \
+    threshold: type both, track by_src, count 20, seconds 60; \
+    classtype:attempted-recon; \
+    metadata:mitre_tactic_id TA0007, mitre_tactic_name Discovery, mitre_technique_id T1046, mitre_technique_name "Network Service Discovery"; \
+    reference:url,attack.mitre.org/techniques/T1046; \
+    sid:2001047; \
+    rev:1; \
+)
+
+# ==============================================================================
+# SOC Analyst Tuning & False Positive Guidance:
+# 1. Whitelisting: Vulnerability scanners (Nessus, Qualys, Rapid7 InsightVM) or
+#    monitoring agents (Zabbix, Nagios) will trigger these rules by design.
+#    Add authorized scanner IPs to $SCANNER_IPS and suppress:
+#    `suppress gen_id 1, sig_id 2001046, track by_src, ip $SCANNER_IPS`
+# 2. Content Delivery Networks (CDNs) or Web Browsers loading rich websites with
+#    many concurrent HTTP/HTTPS connections will NOT trigger Rule 1 because they
+#    send to ports 80/443 only. Rule 1 triggers on 15 distinct probes.
+# ==============================================================================
